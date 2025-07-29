@@ -39,40 +39,49 @@ namespace Ejudge_Parser
             }
             foreach (var contest in contests)
             {
-                Console.Write("Parsing ");
-                Console.WriteLine(contest);
-                driver.Navigate().GoToUrl(contest);
-                IWebElement username_input = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(1) > div > input[type=text]"));
-                username_input.SendKeys(user);
-                IWebElement password_input = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(2) > div > input[type=password]"));
-                password_input.SendKeys(pass);
-                IWebElement login_btn = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(4) > div > input[type=submit]"));
-                login_btn.Click();
-                System.Threading.Thread.Sleep(250);
-                string contest_name = driver.Title;
-                IWebElement itog_btn = driver.FindElement(By.CssSelector("#main-menu > ul > li:nth-child(2) > div > a"));
-                itog_btn.Click();
-                var problems = driver.FindElements(By.CssSelector("#probNavTaskArea-ins > table > tbody > tr"));
-                foreach (var problem in problems)
+                try
                 {
-                    var problem_info = problem.FindElements(By.XPath(".//td"));
-                    if (problem_info.Count < 3)
-                        continue;
-                    string problem_name = problem_info[1].Text;
-                    bool isSolved = problem.GetAttribute("class") == "green-tr";
-                    writer.Write(tag);
-                    writer.Write(" ");
-                    writer.Write(user);
-                    writer.Write(" ");
-                    writer.Write(contest);
-                    writer.Write(" ");
-                    writer.WriteLine(isSolved ? 1:0);
-                    writer.WriteLine(contest_name);
-                    writer.WriteLine(problem_name);
-                    //Console.Write(isSolved);
-                    //Console.WriteLine(problem_name);
+                    Console.Write("Parsing ");
+                    Console.WriteLine(contest);
+                    driver.Navigate().GoToUrl(contest);
+                    IWebElement username_input = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(1) > div > input[type=text]"));
+                    username_input.SendKeys(user);
+                    IWebElement password_input = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(2) > div > input[type=password]"));
+                    password_input.SendKeys(pass);
+                    IWebElement login_btn = driver.FindElement(By.CssSelector("#l12 > form > div > table > tbody > tr > td:nth-child(4) > div > input[type=submit]"));
+                    login_btn.Click();
+                    System.Threading.Thread.Sleep(250);
+                    string contest_name = driver.Title;
+                    IWebElement itog_btn = driver.FindElement(By.CssSelector("#main-menu > ul > li:nth-child(2) > div > a"));
+                    itog_btn.Click();
+                    var problems = driver.FindElements(By.CssSelector("#probNavTaskArea-ins > table > tbody > tr"));
+                    foreach (var problem in problems)
+                    {
+                        var problem_info = problem.FindElements(By.XPath(".//td"));
+                        if (problem_info.Count < 3)
+                            continue;
+                        string problem_name = problem_info[1].Text;
+                        bool isSolved = problem.GetAttribute("class") == "green-tr";
+                        writer.Write(tag);
+                        writer.Write(" ");
+                        writer.Write(user);
+                        writer.Write(" ");
+                        writer.Write(contest);
+                        writer.Write(" ");
+                        writer.WriteLine(isSolved ? 1 : 0);
+                        writer.WriteLine(contest_name);
+                        writer.WriteLine(problem_name);
+                        //Console.Write(isSolved);
+                        //Console.WriteLine(problem_name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing contest {contest}");
+                    Console.WriteLine(ex);
                 }
             }
+            writer.Close();
             //driver.Navigate().GoToUrl("https://ejudge.cpm-inf.ru/cgi-bin/new-client?contest_id=67101");
             //Console.ReadLine();
             //while (!Console.KeyAvailable)
