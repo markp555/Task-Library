@@ -1,4 +1,5 @@
 ﻿using PuppeteerSharp;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -159,15 +160,42 @@ namespace CopyPaster2
                     await page.GoToAsync(taskurl);
                     var taskName = await page.QuerySelectorAsync("#probNavTaskArea-ins > h3:nth-child(3)");
                     var text = await taskName.EvaluateFunctionAsync<string>("el => el.textContent");
-                    text = text[(text.IndexOf(':') + 1)..];
+                    text = text[(text.IndexOf(':') + 1)..].Replace("[", "[[");
                     log.Report("TASK " + text);
-                    // var statement = await page.ScreenshotBase64Async();
-                    var statementSource = await page.QuerySelectorAsync("#probNavTaskArea-ins");
-                    var statement = await statementSource.EvaluateFunctionAsync<string>("el => el.outerText");
+                    var submissions = await page.QuerySelectorAllAsync("#ej-main-submit-tab > table > tbody > tr");
+                    if (submissions.Length > 1)
+                    {
+                        log.Report("Skipped due to not empty submissions list");
+                        cur += 1.0 / total;
+                        progress.Report(cur);
+                        continue;
+                    }
                     var res = await Database.SearchTasksAsync(text, true);
                     if (res.Count > 0)
                     {
-
+                        var target = await page.QuerySelectorAsync("textarea");
+                        await target.FocusAsync();
+                        // await target.TypeAsync(res[0].Submission);
+                        await page.EvaluateFunctionAsync(@"
+                        (element, text) => {
+                            if (element) {
+                                element.value = text;
+                                // Триггерим события изменения, чтобы сайт понял, что текст обновился
+                                element.dispatchEvent(new Event('input', { bubbles: true }));
+                                element.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        }", target, res[0].Submission);
+                        var sendbtn = await page.QuerySelectorAsync("input[type=submit]");
+                        if (await AnsiConsole.ConfirmAsync($"Submit {Markup.Escape(res[0].TaskName)} -> {Markup.Escape(text)}", cancellationToken: ct))
+                        {
+                            var tx = page.WaitForNavigationAsync();
+                            await sendbtn.ClickAsync();
+                            await tx;
+                            log.Report("Submitted code!");
+                        }
+                        else {
+                            log.Report("Canceled by user!");
+                        }
                     }
                     else
                     {

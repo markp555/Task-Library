@@ -193,34 +193,37 @@ async Task SubmitContestScreenAsync()
             .AddChoices(users.Concat(new[] { backLabel })));
     if (username == backLabel) return;
 
-    await AnsiConsole.Progress()
-        .AutoClear(true)
-        .Columns(new ProgressColumn[]
-        {
-                new TaskDescriptionColumn { Alignment = Justify.Left },
-                new ProgressBarColumn(),
-                new PercentageColumn(),
-                new SpinnerColumn(),
-        })
-        .StartAsync(async ctx =>
-        {
-            var task = ctx.AddTask("[yellow]Отправка[/]", maxValue: 1.0);
-            var progress = new Progress<double>(v => task.Value = v);
-            var log = new Progress<string>(msg => task.Description = $"[yellow]{Markup.Escape(msg)}[/]");
+    //await AnsiConsole.Progress()
+    //    .AutoClear(true)
+    //    .Columns(new ProgressColumn[]
+    //    {
+    //            new TaskDescriptionColumn { Alignment = Justify.Left },
+    //            new ProgressBarColumn(),
+    //            new PercentageColumn(),
+    //            new SpinnerColumn(),
+    //    })
+    //    .StartAsync(async ctx =>
+    //    {
+    //        var task = ctx.AddTask("[yellow]Отправка[/]", maxValue: 1.0);
+    //        var progress = new Progress<double>(v => task.Value = v);
+    //        var log = new Progress<string>(msg => task.Description = $"[yellow]{Markup.Escape(msg)}[/]");
 
-            using var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+    //        using var cts = new CancellationTokenSource();
+    //        Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
 
-            try
-            {
-                ContestWorker cw = new(db);
-                await cw.SubmitContestAsync(url, username, progress, log, cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                task.Description = "[red]Отменено[/]";
-            }
-        });
+    //        try
+    //        {
+    //            ContestWorker cw = new(db);
+    //            await cw.SubmitContestAsync(url, username, progress, log, cts.Token);
+    //        }
+    //        catch (OperationCanceledException)
+    //        {
+    //            task.Description = "[red]Отменено[/]";
+    //        }
+    //    });
+    ContestWorker cw = new(db);
+    var log = new Progress<string>(msg => AnsiConsole.MarkupLine($"[yellow]{Markup.Escape(msg)}[/]"));
+    await cw.SubmitContestAsync(url, username, new Progress<double>(), log, CancellationToken.None);
 }
 
 // ===== Утилиты =====

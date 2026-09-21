@@ -148,7 +148,7 @@ namespace CopyPaster2
             // Экранируем двойные кавычки для синтаксиса FTS5 и оборачиваем в фразу
             string safeQuery = query.Replace("\"", "\"\"");
             // Указываем FTS5 искать конкретно в колонке TaskName
-            string ftsMatch = $"{safeQuery}";
+            string ftsMatch = $"\"{safeQuery}\"";
 
             using var command = _connection.CreateCommand();
             command.CommandText = @"
