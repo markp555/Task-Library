@@ -27,6 +27,7 @@ namespace Ejudge_Parser
             System.IO.StreamWriter writer = new System.IO.StreamWriter(@"P:\contests.dat", true);
             driver.Navigate().GoToUrl(parent);
             var contests_list = driver.FindElements(By.XPath("//a"));
+            
             List<string> contests = new List<string>();
             foreach (var link in contests_list)
             {
